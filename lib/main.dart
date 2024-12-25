@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'widgets/students.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../widgets/tabs_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp())); // Добавляем ProviderScope для Riverpod
 }
 
 class MyApp extends StatelessWidget {
@@ -11,11 +13,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Student List',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        textTheme: GoogleFonts.latoTextTheme(),
         primarySwatch: Colors.blue,
       ),
-      home: StudentsScreen(), // Встановлення StudentsScreen як домашнього екрану
+      home: const TabsScreen(),
     );
   }
 }
