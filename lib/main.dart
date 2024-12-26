@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../widgets/tabs_screen.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp())); // Добавляем ProviderScope для Riverpod
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

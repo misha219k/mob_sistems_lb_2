@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
 import '../models/faculty.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/students_provider.dart';
 
-class NewStudent extends StatefulWidget {
-  final Student? student;
-  final Function(Student) onSave;
+class NewStudent extends ConsumerStatefulWidget {
+  final int? studentIndex;
 
-  const NewStudent({super.key, this.student, required this.onSave});
+  const NewStudent({super.key, this.studentIndex});
 
   @override
-  State<NewStudent> createState() => _NewStudentState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _NewStudentState();
 }
 
-class _NewStudentState extends State<NewStudent> {
+class _NewStudentState extends ConsumerState<NewStudent> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   Faculty? _selectedFaculty;
@@ -22,41 +23,50 @@ class _NewStudentState extends State<NewStudent> {
   @override
   void initState() {
     super.initState();
-    if (widget.student != null) {
-      _nameController.text = widget.student!.name;
-      _surnameController.text = widget.student!.surname;
-      _selectedFaculty = widget.student!.faculty;
-      _selectedGender = widget.student!.gender;
-      _currentScore = widget.student!.score;
+    if (widget.studentIndex != null) {
+      final student = ref.read(studentsProvider)![widget.studentIndex!];
+      _nameController.text = student.name;
+      _surnameController.text = student.surname;
+      _selectedFaculty = student.faculty;
+      _selectedGender = student.gender;
+      _currentScore = student.score;
     }
   }
 
-  void _submitStudent() {
-    if (_nameController.text.isEmpty ||
-        _surnameController.text.isEmpty ||
-        _selectedFaculty == null ||
-        _selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill out all fields.')),
-      );
-      return;
+  void _submitStudent() async {
+
+    if (widget.studentIndex != null) {
+      await ref.read(studentsProvider.notifier).editStudent(
+            widget.studentIndex!,
+            _nameController.text.trim(),
+            _surnameController.text.trim(),
+            _selectedFaculty,
+            _selectedGender,
+            _currentScore,
+          );
+    } else {
+      await ref.read(studentsProvider.notifier).addStudent(
+            _nameController.text.trim(),
+            _surnameController.text.trim(),
+            _selectedFaculty,
+            _selectedGender,
+            _currentScore,
+          );
     }
 
-    final newStudent = Student(
-      name: _nameController.text.trim(),
-      surname: _surnameController.text.trim(),
-      faculty: _selectedFaculty!,
-      gender: _selectedGender!,
-      score: _currentScore,
-    );
+    if (!context.mounted) return;
 
-    widget.onSave(newStudent);
-    Navigator.pop(context);
+    Navigator.of(context).pop(); 
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final notifier = ref.watch(studentsProvider.notifier);
+    Widget screen = const Center(
+      child: CircularProgressIndicator(),
+    );
+    if(!notifier.isLoading) {
+      screen = Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         child: Container(
@@ -93,8 +103,8 @@ class _NewStudentState extends State<NewStudent> {
                     value: faculty,
                     child: Row(
                       children: [
-                        Icon(facultyIcons[faculty], color: Colors.grey[700]), // Иконка факультета
-                        const SizedBox(width: 8), // Отступ между иконкой и текстом
+                        Icon(facultyIcons[faculty], color: Colors.grey[700]), 
+                        const SizedBox(width: 8),
                         Text(
                           facultyNames[faculty]!,
                           style: const TextStyle(fontSize: 16),
@@ -135,5 +145,7 @@ class _NewStudentState extends State<NewStudent> {
         ),
       ),
     );
+    }
+    return screen;
   }
 }

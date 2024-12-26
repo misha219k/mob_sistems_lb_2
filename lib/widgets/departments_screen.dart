@@ -12,7 +12,9 @@ class DepartmentsScreen extends ConsumerWidget {
 
     final facultyCounts = {
       for (var faculty in Faculty.values)
-        faculty: students.where((student) => student.faculty == faculty).length,
+        faculty: students == null 
+          ? 0 
+          : students.where((s) => s.faculty == faculty).length,
     };
 
     return GridView.builder(
